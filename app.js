@@ -15,7 +15,7 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static(path.join(__dirname, '/public')));
+// app.use(express.static(path.join(__dirname, '/public')));
 
 const MONGO_URL = 'mongodb://localhost:27017/wanderlust';
 
@@ -39,6 +39,11 @@ app.use('/listings', listingRoutes);
 app.use('/listings/:id/reviews', reviewRoutes);
 
 
+app.use((req, res, next) => {
+    next(new ExpressError(404, 'Page Not Found'));
+});
+
+
 app.use((err,req,res,next) => {
     let { statusCode = 500, message = 'Something went wrong!' } = err;
     
@@ -49,10 +54,6 @@ app.use((err,req,res,next) => {
     // }
     res.status(statusCode).render('listings/error.ejs', { message });
     // res.status(statusCode).send(message);
-});
-
-app.use((req, res, next) => {
-    next(new ExpressError('Page Not Found', 404));
 });
 
 app.listen(3000, () => {
