@@ -8,6 +8,7 @@ const ExpressError = require('./utils/ExpressError.js');
 const listingRoutes = require('./routes/listing.js');
 const reviewRoutes = require('./routes/review.js');
 const session = require('express-session');
+const flash = require('connect-flash');
 
 app.use(methodOverride('_method'));
 app.engine('ejs', ejsMate);
@@ -42,19 +43,27 @@ const sessionOptions = {
         httpOnly: true
     }
 };
-app.use(session(sessionOptions));
 
 app.get('/', (req, res) => {
     res.send('ROOT!');
+});
+
+app.use(session(sessionOptions));
+app.use(flash());
+
+app.use((req, res, next) => {
+    res.locals.success = req.flash('success');
+    res.locals.error = req.flash('error');
+    next();
 });
 
 app.use('/listings', listingRoutes);
 app.use('/listings/:id/reviews', reviewRoutes);
 
 
-app.use((req, res, next) => {
-    next(new ExpressError(404, 'Page Not Found'));
-});
+// app.use((req, res, next) => {
+//     next(new ExpressError(404, 'Page Not Found'));
+// });
 
 
 app.use((err,req,res,next) => {
