@@ -12,6 +12,7 @@ const flash = require('connect-flash');
 const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const User = require('./models/user.js');
+const userRoutes = require('./routes/user.js');
 
 app.use(methodOverride('_method'));
 app.engine('ejs', ejsMate);
@@ -73,11 +74,11 @@ app.get('/demouser', async (req, res) => {
     });
     let newUser = await User.register(fakeUser, 'demo@123');
     res.send(newUser);
-    })
+});
 
 app.use('/listings', listingRoutes);
 app.use('/listings/:id/reviews', reviewRoutes);
-
+app.use('/', userRoutes);
 
 // app.use((req, res, next) => {
 //     next(new ExpressError(404, 'Page Not Found'));
