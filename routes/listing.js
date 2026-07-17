@@ -16,10 +16,7 @@ router
     //Index route
     .get(wrapAsync(listingController.index))
     //Create route
-    // .post(isLoggedIn, validateListing, wrapAsync(listingController.createListing));
-    .post(upload.single('listing[image]'), (req, res) => {
-        res.send(req.file);
-    });
+    .post(isLoggedIn, validateListing, upload.single('listing[image]'), wrapAsync(listingController.createListing));
 
 //New route
 router.get('/new', isLoggedIn, listingController.renderNewForm);
@@ -29,7 +26,7 @@ router
     //Show route
     .get(wrapAsync(listingController.showListing))
     //Update route
-    .put(isLoggedIn, isOwner, validateListing, wrapAsync(listingController.updateListing));
+    .put(isLoggedIn, isOwner, upload.single('listing[image]'), validateListing, wrapAsync(listingController.updateListing));
 
 //Edit route
 router.get('/:id/edit', isLoggedIn, isOwner, wrapAsync(listingController.renderEditForm));

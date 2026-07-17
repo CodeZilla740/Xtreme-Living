@@ -9,14 +9,8 @@ const listingSchema = new Schema({
     },
     description: String,
     image: {
+        url: String,
         filename: String,
-        url: {
-            type: String,
-            default: "https://unsplash.com/photos/brown-wooden-house-in-the-middle-of-forest-during-daytime-jo8pclRHmCI",
-            set: (value) => value==="" 
-            ? "https://unsplash.com/photos/brown-wooden-house-in-the-middle-of-forest-during-daytime-jo8pclRHmCI" 
-            : value,
-        },
         
     },
     price: Number,
