@@ -1,4 +1,5 @@
 const Listing = require('../models/listing');
+const getCoordinates = require('../utils/geocode');
 
 module.exports.index = async (req, res, next) => {
     const allListings = await Listing.find({});
@@ -21,21 +22,31 @@ module.exports.showListing = async (req, res, next) => {
 }
 
 module.exports.createListing = async (req, res, next) => {
-    let url = req.file.path;
-    let filename = req.file.filename;
-    const { listing } = req.body;
-    const newListing = new Listing({
-        ...listing,
-        image: {
-            filename: "",
-            url: listing.image
-        }
-    });
-    newListing.owner = req.user._id;
-    newListing.image = {url,filename};
-    await newListing.save();
-    req.flash("success", "Successfully created a new listing!");
-    res.redirect('/listings');
+    try {
+        let url = req.file.path;
+        let filename = req.file.filename;
+        const { listing } = req.body;
+        const coordinates = await getCoordinates(listing.location);
+        const newListing = new Listing({
+            ...listing,
+            geometry: {
+                type: "Point",
+                coordinates: coordinates
+            },
+            image: {
+                filename: "",
+                url: listing.image
+            }
+        });
+        newListing.owner = req.user._id;
+        newListing.image = {url,filename};
+        await newListing.save();
+        req.flash("success", "Successfully created a new listing!");
+        res.redirect('/listings');
+    } catch (err) {
+        req.flash("error", "Invalid Location!");
+        res.redirect('/listings');
+    }
 }
 
 module.exports.renderEditForm = async (req, res, next) => {
@@ -51,23 +62,34 @@ module.exports.renderEditForm = async (req, res, next) => {
 }
 
 module.exports.updateListing = async (req, res, next) => {
-    const { id } = req.params;
-    const { listing } = req.body;
-    let updatedListing = await Listing.findByIdAndUpdate(id, {
-        ...listing,
-        image: {
-            filename: "",
-            url: listing.image
+    try {
+        const { id } = req.params;
+        const { listing } = req.body;
+        const coordinates = await getCoordinates(listing.location);
+        let updatedListing = await Listing.findByIdAndUpdate(id, {
+            ...listing,
+            geometry: {
+                type: "Point",
+                coordinates: coordinates
+            },
+            // image: {
+            //     filename: "",
+            //     url: listing.image
+            // }
+        });
+        if(typeof req.file !== 'undefined') {
+            let url = req.file.path;
+            let filename = req.file.filename;
+            updatedListing.image = {url,filename};
+            await updatedListing.save();
         }
-    });
-    if(typeof req.file !== 'undefined') {
-        let url = req.file.path;
-        let filename = req.file.filename;
-        updatedListing.image = {url,filename};
-        await updatedListing.save();
+        req.flash("success", "Successfully updated the listing!");
+        res.redirect(`/listings/${id}`);
     }
-    req.flash("success", "Successfully updated the listing!");
-    res.redirect(`/listings/${id}`);
+    catch (err) {
+        req.flash("error", "Invalid Location!");
+        res.redirect(`/listings/${id}/edit`);
+    }
 }
 
 module.exports.destroyListing = async (req, res, next) => {
